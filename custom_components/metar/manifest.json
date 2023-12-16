@@ -1,0 +1,9 @@
+{
+  "domain": "flying_weather",
+  "name": "Flying weather",
+  "version": "2023.12.1",
+  "documentation": "https://en.wikipedia.org/wiki/METAR",
+  "dependencies": [],
+  "codeowners": ["asterix11"],
+  "requirements": ["metar"]
+}
