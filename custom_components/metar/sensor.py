@@ -69,68 +69,68 @@ class MetarSensor(Entity):
     def update(self):
         """Get the latest data from Metar and updates the states."""
 
+        states = []
+
+        for code in route['codes']:
+            weather_data = MetarData({
+                'code': code,
+            })
+
+            try:
+                weather_data.update()
+            except URLCallError:
+                _LOGGER.error("Error when retrieving update data")
+                return
+
+            if weather_data is None:
+                return
+
+            qnh = 1013.25
+            visibility = 9999
+            clouds = []
+
+            try:
+                data = weather_data.sensor_data.press.string("")
+                temp = data.split(" ")
+                qnh = float(temp[0])
+            except:
+                _LOGGER.warning(
+                    "QNH is currently not available!")
+
+            try:
+                data = weather_data.sensor_data.visibility()
+                result = re.findall("([0-9]+)\\Wmeters", data)
+                if len(result) == 1:
+                    visibility = int(result[0])
+            except:
+                _LOGGER.warning(
+                    "Visibility is currently not available!")
+            try:
+                data = weather_data.sensor_data.sky_conditions("\n     ")
+                result = re.findall(".*(few|scattered|broken|overcast)[a-z\\W]+([0-9]+)\\Wfeet", data)
+                result = sorted(list(map(lambda x : (1 if x[0] == 'overcast' else (2 if x[0] == 'broken' else (3 if x[0] == 'scattered' else (4 if x[0] == 'few' else -1))), int(x[1])), result)), key=lambda x : (x[1], x[0]))
+                clouds = result
+                _LOGGER.warning(data)
+                _LOGGER.warning(clouds)
+            except:
+                _LOGGER.warning(
+                    "Clouds are currently not available!")
+
+            state = 0
+            clouds_significant = list(filter(lambda x : (x[0] == 1 or x[0] == 2 or x[0] == 3) and x[1] <= 3000, clouds))
+            if visibility > 8000 and len(clouds_significant) == 0:
+                state = 3
+            elif visibility > 5000 and clouds_significant[0][1] > 1000:
+                state = 2
+            elif visibility > 1500 and clouds_significant[0][1] > 500:
+                state = 1
+
+            states.push(state)
+
         try:
             if self.type == 'time':
                 self._state = ""
-            elif self.type == 'flight_ruleset':
-                states = []
-
-                for code in route['codes']:
-                    weather_data = MetarData({
-                        'code': code,
-                    })
-
-                    try:
-                        weather_data.update()
-                    except URLCallError:
-                        _LOGGER.error("Error when retrieving update data")
-                        return
-
-                    if weather_data is None:
-                        return
-
-                    qnh = 1013.25
-                    visibility = 9999
-                    clouds = []
-
-                    try:
-                        data = weather_data.sensor_data.press.string("")
-                        temp = data.split(" ")
-                        qnh = float(temp[0])
-                    except:
-                        _LOGGER.warning(
-                            "QNH is currently not available!")
-
-                    try:
-                        data = weather_data.sensor_data.visibility()
-                        result = re.findall("([0-9]+)\\Wmeters", data)
-                        if len(result) == 1:
-                            visibility = int(result[0])
-                    except:
-                        _LOGGER.warning(
-                            "Visibility is currently not available!")
-                    try:
-                        data = weather_data.sensor_data.sky_conditions("\n     ")
-                        result = re.findall(".*(few|scattered|broken|overcast)[a-z\\W]+([0-9]+)\\Wfeet", data)
-                        result = sorted(list(map(lambda x : (1 if x[0] == 'overcast' else (2 if x[0] == 'broken' else (3 if x[0] == 'scattered' else (4 if x[0] == 'few' else -1))), int(x[1])), result)), key=lambda x : (x[1], x[0]))
-                        clouds = result
-                        _LOGGER.warning(data)
-                        _LOGGER.warning(clouds)
-                    except:
-                        _LOGGER.warning(
-                            "Clouds are currently not available!")
-
-                    state = 0
-                    clouds_significant = list(filter(lambda x : (x[0] == 1 or x[0] == 2 or x[0] == 3) and x[1] <= 3000, clouds))
-                    if visibility > 8000 and len(clouds_significant) == 0:
-                        state = 3
-                    elif visibility > 5000 and clouds_significant[0][1] > 1000:
-                        state = 2
-                    elif visibility > 1500 and clouds_significant[0][1] > 500:
-                        state = 1
-
-                    states.push(state)
-                
+            elif self.type == 'flight_ruleset':                
                 result_state = int(floor(sum(states) / len(route["codes"])))
                 
                 self._state = "LIFR" if result_state == 0 else ("IFR" if result_state == 1 else ("MVFR" if result_state == 2 else "VFR"))
