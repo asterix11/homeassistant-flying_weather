@@ -9,7 +9,7 @@ To enable it, add the following lines to your `configuration.yaml`:
 # Example configuration.yaml entry
 sensor:
   - platform: flying_weather
-    route_nae: Luebeck-Hamburg
+    route_name: "Luebeck-Hamburg"
     airport_codes:
       - EDHL
       - EDDH
