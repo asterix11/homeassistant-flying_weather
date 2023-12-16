@@ -49,6 +49,7 @@ class MetarSensor(Entity):
        self._name = SENSOR_TYPES[sensor_type][0]
        self._unit_of_measurement = SENSOR_TYPES[sensor_type][1]
        self._route_name = route["route"]
+       self._codes = route["codes"]
        self.type = sensor_type
 
     @property
@@ -71,7 +72,7 @@ class MetarSensor(Entity):
 
         states = []
 
-        for code in route['codes']:
+        for code in self._codes:
             weather_data = MetarData({
                 'code': code,
             })
