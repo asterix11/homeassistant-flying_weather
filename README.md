@@ -8,33 +8,30 @@ To enable it, add the following lines to your `configuration.yaml`:
 ```yaml
 # Example configuration.yaml entry
 sensor:
-  - platform: metar
-    airport_name: Pisa
-    airport_code: LIRP
+  - platform: flying_weather
+    route_nae: Luebeck-Hamburg
+    airport_codes:
+      - EDHL
+      - EDDH
     monitored_conditions:
       - time
-      - temperature
-      - wind
-      - pressure
-      - visibility
-      - precipitation
-      - sky
+      - flight_ruleset
 ```
 
 ### Configuration Variables
 
--  airport_name
+-  route_name
 
-  (string)(Required) The airport name.
+  (string)(Required) Your route name.
 
-  -  airport_code
+  -  airport_codes
 
-    (string)(Required) The *International Civil Aviation Organization*, *ICAO* code for the airport.
+    (List<string>)(Required) The *International Civil Aviation Organization*, *ICAO* codes for the airports on the route.
 
 -  monitored_conditions
 
   (string)(Optional) What to read
 
-It need metar python module.
+It needs the metar python module.
 
 It's a custom component so it must be downloaded under /custom_components folder.
