@@ -1,1 +1,1 @@
-"""The metar component."""
+"""The flying_weather component."""
