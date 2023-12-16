@@ -12,6 +12,7 @@ except:
     from urllib.request import urlopen
 from metar import Metar
 import re
+import math
 
 DOMAIN = 'flying_weather'
 CONF_ROUTE_NAME = 'route_name'
@@ -23,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 SENSOR_TYPES = {
     'time': ['Updated', None],
-    'flight_ruleset': ['Flight Ruleset', None],
+    'flight_ruleset': ['Ruleset', None],
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -35,7 +36,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
    route = {'route': str(config.get(CONF_ROUTE_NAME
-)), 'codes': str(config.get(CONF_AIRPORT_CODES))}
+)), 'codes': config.get(CONF_AIRPORT_CODES)}
    dev = []
    for variable in config[CONF_MONITORED_CONDITIONS]:
        dev.append(MetarSensor(route, variable, SENSOR_TYPES[variable][1]))
@@ -132,7 +133,7 @@ class MetarSensor(Entity):
             if self.type == 'time':
                 self._state = ""
             elif self.type == 'flight_ruleset':                
-                result_state = int(floor(sum(states) / len(route["codes"])))
+                result_state = int(math.floor(sum(states) / len(self._codes)))
                 
                 self._state = "LIFR" if result_state == 0 else ("IFR" if result_state == 1 else ("MVFR" if result_state == 2 else "VFR"))
         except KeyError:
