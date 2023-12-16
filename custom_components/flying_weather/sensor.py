@@ -126,7 +126,7 @@ class MetarSensor(Entity):
             elif visibility > 1500 and clouds_significant[0][1] > 500:
                 state = 1
 
-            states.push(state)
+            states.append(state)
 
         try:
             if self.type == 'time':
